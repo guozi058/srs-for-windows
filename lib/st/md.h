@@ -219,9 +219,10 @@ size_t getpagesize(void);
 int _st_poll(struct pollfd *pds, int npds, unsigned long timeout, int os);
 int _st_GetError(int err);
 
-#if FD_SETSIZE < 200
+//FIXME: 
+#if FD_SETSIZE < 2000
 #undef FD_SETSIZE
-#define FD_SETSIZE 200
+#define FD_SETSIZE 2000
 #endif
 #define POLLIN 1
 #define POLLPRI 2

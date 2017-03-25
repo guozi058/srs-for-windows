@@ -69,6 +69,7 @@
 /* Winsock Data */
 static WSADATA wsadata;
 
+//FIXME: 动态设定socket列表
 /* map winsock descriptors to small integers */
 int fds[FD_SETSIZE+5];
 
