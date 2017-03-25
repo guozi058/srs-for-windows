@@ -151,7 +151,7 @@ int _st_GetError(int err)
 int freefdsslot(void)
 {
 	int i;
-	for(i=5;i<FD_SETSIZE;i++)
+	for(i=5; i < FD_SETSIZE; i++)
 	{
 		if(fds[i] == 0) return(i);
 	}
