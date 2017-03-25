@@ -1,5 +1,5 @@
 # srs-for-windows
-simple rtmp server 2.0 for windows
+simple rtmp server 2.0 for windows(x86,x64)
 
 编译环境：VisualStudio 2010
 
