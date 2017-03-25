@@ -431,7 +431,7 @@ APIEXPORT ssize_t st_write(_st_netfd_t *fd, const void *buf, size_t nbyte,
 	ssize_t nleft = nbyte;
 
 	while (nleft > 0) {
-		if ((n = send(fds[fd->osfd], (char*)buf, nleft,0)) < 0) {
+		if ((n = send(fds[fd->osfd], (char*)buf, nleft, 0)) < 0) {
 			errno=_st_GetError(0);
 			if (errno == EINTR)
 				continue;
@@ -465,7 +465,8 @@ static ssize_t _st_writev(int fd, struct iovec *iov, unsigned int iov_cnt)
 	{
 		total += iov[i].iov_len;
 	}
-	pv = calloc(1, total);
+	//pv = calloc(1, total);
+	pv = malloc(total);
 	if(NULL == pv){
 		errno = _st_GetError(0);
 		ret = -1;
@@ -473,18 +474,18 @@ static ssize_t _st_writev(int fd, struct iovec *iov, unsigned int iov_cnt)
 	else
 	{
 		for(i = 0, ret = 0; i < iov_cnt; ++i){
-			(void)memcpy((char*)pv + ret, iov[i].iov_base, iov[i].iov_len);
+			memcpy((char*)pv + ret, iov[i].iov_base, iov[i].iov_len);
 			ret += (ssize_t)iov[i].iov_len;
 		}
 
-		if(!send(fd, (char*)pv,total,0)){
+		if(!send(fds[fd], (char*)pv, total, 0)){
 			errno = _st_GetError(0);
 			ret = -1;
 		}
 		else{
 			ret = total;
 		}
-		(void)free(pv);
+		free(pv);
 	}
 
 	return ret;
