@@ -53,7 +53,10 @@
 #define APIEXPORT
 #endif
 #include <setjmp.h>
+#include <inttypes.h>
 
+#include <map>
+using namespace std;
 /* Enable assertions only if DEBUG is defined */
 #ifndef DEBUG
 #define NDEBUG
@@ -73,6 +76,12 @@
 #include "public.h"
 #include "md.h"
 
+typedef struct _st_seldata {
+	fd_set fd_read_set, fd_write_set, fd_exception_set;
+	//int fd_ref_cnts[FD_SETSIZE][3];
+	map<int32_t, map<int8_t, int32_t>> fd_ref_cnts;
+	int maxfd;
+};
 
 /*****************************************
  * Circular linked list definitions

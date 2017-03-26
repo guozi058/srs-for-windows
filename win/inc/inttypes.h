@@ -127,13 +127,14 @@ typedef int16_t   u_int16_t;
 typedef uint32_t  u_int32_t;
 typedef uint64_t  u_int64_t;
 typedef int ssize_t;
-typedef unsigned int size_t;
 
 // 7.18.1.4 Integer types capable of holding object pointers
 #ifdef _WIN64 // [
+
    typedef signed __int64    intptr_t;
    typedef unsigned __int64  uintptr_t;
 #else // _WIN64 ][
+   typedef unsigned int size_t;
    typedef _W64 signed int   intptr_t;
    typedef _W64 unsigned int uintptr_t;
 #endif // _WIN64 ]

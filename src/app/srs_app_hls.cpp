@@ -743,12 +743,21 @@ int SrsHlsMuxer::segment_close(string log_desc)
         
         // rename from tmp to real path
         std::string tmp_file = full_path + ".tmp";
+#ifdef _WIN32
+        if (should_write_file && MoveFileEx(tmp_file.c_str(), full_path.c_str(), MOVEFILE_REPLACE_EXISTING) == 0) {
+            ret = ERROR_HLS_WRITE_FAILED;
+            srs_error("rename ts file failed, %s => %s. ret=%d", 
+                tmp_file.c_str(), full_path.c_str(), ret);
+            return ret;
+        }
+#else
         if (should_write_file && rename(tmp_file.c_str(), full_path.c_str()) < 0) {
             ret = ERROR_HLS_WRITE_FAILED;
             srs_error("rename ts file failed, %s => %s. ret=%d", 
                 tmp_file.c_str(), full_path.c_str(), ret);
             return ret;
         }
+#endif
     } else {
         // reuse current segment index.
         _sequence_no--;
@@ -756,7 +765,7 @@ int SrsHlsMuxer::segment_close(string log_desc)
         srs_trace("%s drop ts segment, sequence_no=%d, uri=%s, duration=%.2f, start=%"PRId64"",
             log_desc.c_str(), current->sequence_no, current->uri.c_str(), current->duration, 
             current->segment_start_dts);
-        
+#ifndef _WIN32        
         // rename from tmp to real path
         std::string tmp_file = current->full_path + ".tmp";
         if (should_write_file) {
@@ -764,7 +773,7 @@ int SrsHlsMuxer::segment_close(string log_desc)
                 srs_warn("ignore unlink path failed, file=%s.", tmp_file.c_str());
             }
         }
-        
+#endif        
         srs_freep(current);
     }
     
@@ -797,9 +806,15 @@ int SrsHlsMuxer::segment_close(string log_desc)
         SrsHlsSegment* segment = segment_to_remove[i];
         
         if (hls_cleanup && should_write_file) {
+#ifdef _WIN32
+            if (remove(segment->full_path.c_str()) < 0) {
+                srs_warn("cleanup unlink path failed, file=%s.", segment->full_path.c_str());
+            }
+#else
             if (unlink(segment->full_path.c_str()) < 0) {
                 srs_warn("cleanup unlink path failed, file=%s.", segment->full_path.c_str());
             }
+#endif
         }
         
         srs_freep(segment);
@@ -826,19 +841,27 @@ int SrsHlsMuxer::refresh_m3u8()
     
     std::string temp_m3u8 = m3u8 + ".temp";
     if ((ret = _refresh_m3u8(temp_m3u8)) == ERROR_SUCCESS) {
+#ifdef _WIN32
+		
+        if (should_write_file && MoveFileEx(temp_m3u8.c_str(), m3u8.c_str(), MOVEFILE_REPLACE_EXISTING) == 0) {
+            ret = ERROR_HLS_WRITE_FAILED;
+            srs_error("rename m3u8 file failed. %s => %s, ret=%d", temp_m3u8.c_str(), m3u8.c_str(), ret);
+        }
+#else
         if (should_write_file && rename(temp_m3u8.c_str(), m3u8.c_str()) < 0) {
             ret = ERROR_HLS_WRITE_FAILED;
             srs_error("rename m3u8 file failed. %s => %s, ret=%d", temp_m3u8.c_str(), m3u8.c_str(), ret);
         }
+#endif
     }
-    
+#ifndef _WIN32    
     // remove the temp file.
     if (srs_path_exists(temp_m3u8)) {
         if (unlink(temp_m3u8.c_str()) < 0) {
             srs_warn("ignore remove m3u8 failed, %s", temp_m3u8.c_str());
         }
     }
-    
+#endif    
     return ret;
 }
 

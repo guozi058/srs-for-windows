@@ -3,15 +3,21 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <inttypes.h>
 #include "common.h"
+#include <map>
 
-extern int fds[FD_SETSIZE+5];
+using namespace std;
+//extern int fds[FD_SETSIZE+5];
+extern map<int32_t, int32_t> fds;
 
-static struct _st_seldata {
-	fd_set fd_read_set, fd_write_set, fd_exception_set;
-	int fd_ref_cnts[FD_SETSIZE][3];
-	int maxfd;
-} *_st_select_data;
+//static struct _st_seldata {
+//	fd_set fd_read_set, fd_write_set, fd_exception_set;
+//	//int fd_ref_cnts[FD_SETSIZE][3];
+//	map<int32_t, map<uint8_t, uint32_t>> fd_ref_cnts;
+//	int maxfd;
+//} 
+_st_seldata *_st_select_data;
 
 #define _ST_SELECT_MAX_OSFD      (_st_select_data->maxfd)
 #define _ST_SELECT_READ_SET      (_st_select_data->fd_read_set)
@@ -30,11 +36,16 @@ _st_eventsys_t *_st_eventsys = NULL;
 
 ST_HIDDEN int _st_select_init(void)
 {
-    _st_select_data = (struct _st_seldata *) malloc(sizeof(*_st_select_data));
+    //_st_select_data = (struct _st_seldata *) malloc(sizeof(*_st_select_data));
+	_st_select_data = new _st_seldata;
     if (!_st_select_data)
         return -1;
 
-    memset(_st_select_data, 0, sizeof(*_st_select_data));
+    //memset(_st_select_data, 0, sizeof(*_st_select_data));
+	memset((void*)(&_st_select_data->fd_exception_set), 0, sizeof(fd_set));
+	memset((void*)(&_st_select_data->fd_read_set), 0, sizeof(fd_set));
+	memset((void*)(&_st_select_data->fd_write_set), 0, sizeof(fd_set));
+	
     _st_select_data->maxfd = -1;
 
     return 0;
@@ -47,8 +58,8 @@ ST_HIDDEN int _st_select_pollset_add(struct pollfd *pds, int npds)
 
     /* Do checks up front */
     for (pd = pds; pd < epd; pd++) {
-		if (pd->fd < 0 || pd->fd >= FD_SETSIZE || !pd->events ||
-            (pd->events & ~(POLLIN | POLLOUT | POLLPRI))) {
+		if (pd->fd < 0 || !pd->events || //pd->fd >= FD_SETSIZE ||
+            (pd->events & ~(POLLIN | POLLOUT | POLLPRI))) { 
             errno = EINVAL;
             return -1;
         }
@@ -280,10 +291,10 @@ ST_HIDDEN void _st_select_dispatch(void)
 
 ST_HIDDEN int _st_select_fd_new(int osfd)
 {
-    if (osfd >= FD_SETSIZE) {
-        errno = EMFILE;
-        return -1;
-    }
+    //if (osfd >= FD_SETSIZE) {
+    //    errno = EMFILE;
+    //    return -1;
+    //}
 
     return 0;
 }

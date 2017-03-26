@@ -42,6 +42,7 @@
 #ifdef WIN32
 #include <io.h>
 #include <sys/uio.h>
+#include <map>
 #else
 #include <unistd.h>
 #include <sys/types.h>
@@ -66,12 +67,16 @@
 #endif
 #define _LOCAL_MAXIOV  16
 
+using namespace std;
 /* Winsock Data */
 static WSADATA wsadata;
 
 //FIXME: 动态设定socket列表
 /* map winsock descriptors to small integers */
-int fds[FD_SETSIZE+5];
+//int fds[FD_SETSIZE+5];
+map<int32_t, int32_t> fds;
+
+extern _st_seldata *_st_select_data;
 
 /* File descriptor object free list */
 static _st_netfd_t *_st_netfd_freelist = NULL;
@@ -173,10 +178,21 @@ int _st_io_init(void)
 	_st_osfd_limit = FD_SETSIZE;
 	WSAStartup(2,&wsadata);
 	/* setup fds index. start at 5 */
-	for(i=0;i<5;i++) fds[i]=-1;
-	for(i=5;i<FD_SETSIZE;i++) fds[i]=0;
+	for(i=0; i<5; i++)
+	{
+		fds[i] = -1;
+		//fds.insert(make_pair(i, -1));
+		//_st_select_data->fd_ref_cnts[i][0] = 0;
+		//_st_select_data->fd_ref_cnts[i][1] = 0;
+		//_st_select_data->fd_ref_cnts[i][2] = 0;
+	}
+
+	//for(i=5; i<FD_SETSIZE; i++) 
+	//{
+	//	fds[i]=0;
+	//}
 	/* due to the braindead select implementation we need a dummy socket */
-	fds[4]=socket(AF_INET,SOCK_STREAM,0);
+	fds[4] = socket(AF_INET, SOCK_STREAM, 0);
 	return 0;
 }
 
@@ -209,13 +225,21 @@ static _st_netfd_t *_st_netfd_new(int osfd, int nonblock, int is_socket)
 	int flags = 1;
 	int i;
 
-	i=freefdsslot();
-	if(i < 0)
-	{
-		errno=EMFILE;
-		return(NULL);
-	}
-	fds[i]=osfd;  /* add osfd to index */
+	//i=freefdsslot();
+	//if(i < 0)
+	//{
+	//	errno=EMFILE;
+	//	return(NULL);
+	//}
+	//fds[i]=osfd;  /* add osfd to index */
+	i = osfd;
+	fds[osfd] = osfd;
+
+	_st_select_data->fd_ref_cnts[osfd][0] = 0;
+	_st_select_data->fd_ref_cnts[osfd][1] = 0;
+	_st_select_data->fd_ref_cnts[osfd][2] = 0;
+
+	//fds.insert(make_pair(osfd, osfd));
 
 	if ((*_st_eventsys->fd_new)(i) < 0)
 		return NULL;
@@ -259,7 +283,11 @@ APIEXPORT int st_netfd_close(_st_netfd_t *fd)
 
 	st_netfd_free(fd);
 	closesocket(fds[fd->osfd]);
-	fds[fd->osfd]=0;
+
+	//fds[fd->osfd]=0;
+	fds.erase(fd->osfd);
+	_st_select_data->fd_ref_cnts.erase(fd->osfd);
+
 	errno=_st_GetError(0);
 	return(errno);
 }
@@ -466,8 +494,7 @@ static ssize_t _st_writev(int fd, struct iovec *iov, unsigned int iov_cnt)
 	{
 		total += iov[i].iov_len;
 	}
-	//pv = calloc(1, total);
-	pv = malloc(total);
+	pv = calloc(1, total);
 	if(NULL == pv){
 		errno = _st_GetError(0);
 		ret = -1;

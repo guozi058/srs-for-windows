@@ -43,7 +43,11 @@ class SrsFileWriter
 {
 private:
     std::string path;
+#ifdef _WIN32
+	FILE *fd;
+#else
     int fd;
+#endif
 public:
     SrsFileWriter();
     virtual ~SrsFileWriter();
@@ -87,7 +91,11 @@ class SrsFileReader
 {
 private:
     std::string path;
+#ifdef _WIN32
+	FILE *fd;
+#else
     int fd;
+#endif
 public:
     SrsFileReader();
     virtual ~SrsFileReader();

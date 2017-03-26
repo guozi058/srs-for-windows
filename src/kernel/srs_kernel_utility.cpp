@@ -45,6 +45,7 @@ using namespace std;
 #include <srs_kernel_stream.hpp>
 #include <srs_kernel_flv.hpp>
 
+extern char *my_inet_ntop(int af, const void *src, char *dst, socklen_t size);
 // this value must:
 // equals to (SRS_SYS_CYCLE_INTERVAL*SRS_SYS_TIME_RESOLUTION_MS_TIMES)*1000
 // @see SRS_SYS_TIME_RESOLUTION_MS_TIMES
@@ -173,8 +174,8 @@ string srs_dns_resolve(string host)
     memset(ipv4, 0, sizeof(ipv4));
     for (int i = 0; i < answer->h_length; i++) {
 		
-        inet_ntop(AF_INET, answer->h_addr_list[i], ipv4, sizeof(ipv4));
-		InetNtop(AF_INET, answer->h_addr_list[i], ipv4, sizeof(ipv4));
+        my_inet_ntop(AF_INET, answer->h_addr_list[i], ipv4, sizeof(ipv4));
+		//InetNtop(AF_INET, answer->h_addr_list[i], ipv4, sizeof(ipv4));
         break;
     }
     
