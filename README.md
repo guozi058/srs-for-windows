@@ -5,4 +5,4 @@ simple rtmp server 2.0 for windows(x86,x64)
 
 TODO: 
 1. 目前windows下默认select模型，须改进为IOCP模型;
-2. vlc播放rtmp流出现马赛克，由于时间戳问题导致，待修复；
+2. vlc播放rtmp流偶尔出现马赛克；
