@@ -7,6 +7,6 @@ TODO:
 1. 目前windows下默认select模型，须改进为IOCP模型;
 2. vlc播放rtmp流偶尔出现马赛克；
 
-PowerCOM Software
 
-(www.powercom.net.cn)
+PowerCOM Software
+www.powercom.net.cn
