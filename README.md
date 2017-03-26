@@ -8,4 +8,5 @@ TODO:
 2. vlc播放rtmp流偶尔出现马赛克；
 
 PowerCOM Software
-www.powercom.net.cn
+
+(www.powercom.net.cn)
